@@ -1,14 +1,34 @@
+# Scale to Win Smokescreen
+
+This is a fork of [Smokescreen](https://github.com/stripe/smokescreen), an
+HTTP CONNECT proxy. We use it specifically to prevent SSRF attacks by proxying
+all requests to user-controlled hostnames through Smokescreen, which lives in a
+separate AWS security group and also blocks any attempts to connect to
+private or internal addresses.
+
+We have not changed any of the code, but we have added a Dockerfile, Docker
+publishing tooling, and a wide-open default config that disables mTLS
+authentication and allows requests to any (non-internal) address. This is
+suitable for our use-case, where we are using Smokescreen only for SSRF
+protection (not as a single point of egress for all external traffic, where we'd
+get additinal security benefits by enforcing a per-service ACL authenticated
+with mTLS), and we run it as an internal service witha private IP and
+network-level access control, but is not suitable for other Smokescreen
+use-cases (in particular, Smokescreen in this configuration should never
+be run accessible to the public internet, where it would be able to be used as
+a public proxy to tunnel malicious traffic through).
+
 # Smokescreen [![Test](https://github.com/stripe/smokescreen/workflows/Test/badge.svg?branch=master&event=push)](https://github.com/stripe/smokescreen/actions?query=workflow%3ATest+branch%3Amaster) [![Coverage Status](https://coveralls.io/repos/github/stripe/smokescreen/badge.svg?branch=master)](https://coveralls.io/github/stripe/smokescreen?branch=master)
 
 Smokescreen is a HTTP CONNECT proxy. It proxies most traffic from Stripe to the
 external world (e.g., webhooks).
 
 Smokescreen restricts which URLs it connects to:
-- It uses a pre-configured hostname ACL to only allow requests addressed to certain allow-listed hostnames, 
+- It uses a pre-configured hostname ACL to only allow requests addressed to certain allow-listed hostnames,
 to ensure that no malicious code is attempting to make requests to unexpected services.
-- It also resolves each domain name that is requested, and ensures that it is a publicly routable 
-IP address and not an internal IP address. This prevents a class of attacks where, for instance, 
-our own webhooks infrastructure is used to scan Stripe’s internal network. Smokescreen 
+- It also resolves each domain name that is requested, and ensures that it is a publicly routable
+IP address and not an internal IP address. This prevents a class of attacks where, for instance,
+our own webhooks infrastructure is used to scan Stripe’s internal network. Smokescreen
 can also be further configured to allow or deny specific IP addresses or ranges.
 
 Smokescreen also allows us to centralize egress from Stripe, allowing us to give
@@ -122,7 +142,7 @@ func main() {
 ```
 ### IP Filtering
 
-To control the routing of requests to specific IP addresses or IP blocks, use the `deny-address`, `allow-address`, `deny-range`, and `allow-range` options in the config. 
+To control the routing of requests to specific IP addresses or IP blocks, use the `deny-address`, `allow-address`, `deny-range`, and `allow-range` options in the config.
 
 ### Hostname ACLs
 

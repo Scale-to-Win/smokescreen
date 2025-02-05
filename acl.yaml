@@ -1,0 +1,8 @@
+# acl.yaml
+---
+version: v1
+services: []
+default:
+  name: default
+  project: security
+  action: open

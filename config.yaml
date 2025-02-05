@@ -1,0 +1,5 @@
+# config.yaml
+---
+allow_missing_role: true  # skip mTLS client validation (use default ACL)
+connect_timeout: 60s
+idle_timeout: 60s
